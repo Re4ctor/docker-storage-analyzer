@@ -34,8 +34,7 @@ program
       }
 
       if (options.history) {
-        console.log(chalk.dim('\nHistorical tracking is available with the web server.'));
-        console.log(chalk.dim('Run `dkanalyze web` to start the dashboard.'));
+        console.log(chalk.dim('\nHistorical tracking is not implemented in this local prototype yet.'));
       }
 
       if (options.ai) {

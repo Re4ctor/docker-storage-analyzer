@@ -1,10 +1,21 @@
 {
-  "name": "docker-storage-analyzer",
-  "version": "1.0.0",
+  "name": "@stackctl/docker-storage-analyzer",
+  "version": "1.0.1",
   "description": "Analyze Docker disk usage: images, containers, volumes, build cache, and logs",
   "type": "module",
   "bin": {
-    "dkanalyze": "./dist/cli/index.js"
+    "dkanalyze": "dist/cli/index.js"
+  },
+  "files": [
+    "dist/analyzer",
+    "dist/cli",
+    "dist/web",
+    "public",
+    "README.md",
+    "Dockerfile"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",

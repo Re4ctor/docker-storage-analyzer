@@ -38,9 +38,12 @@ app.get('/api/history', (_req, res) => {
 app.post('/api/prune', async (req, res) => {
   try {
     const { category, ids } = req.body;
-    const dockerSocket = process.env.DOCKER_SOCKET || '/var/run/docker.sock';
-    // TODO: implement actual prune via Docker SDK
-    res.json({ success: true, message: `Pruned ${category}: ${(ids ?? []).length} items` });
+    res.status(501).json({
+      success: false,
+      error: 'Prune execution is intentionally disabled in this prototype. Review and run the recommended Docker command manually.',
+      category,
+      items: ids ?? [],
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }

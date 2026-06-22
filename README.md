@@ -1,90 +1,100 @@
-# Docker Storage Analyzer
+# @stackctl/docker-storage-analyzer
 
-Analyze Docker disk usage on any host machine. See what's consuming space across images, containers, volumes, build cache, and logs — with actionable cleanup recommendations.
+Analyze Docker disk usage on any host. Find images, volumes, container logs, and build cache consuming space — with cleanup commands you can review before running.
 
-## Quick Start
+## Quick start
 
 ```bash
-npx dkanalyze analyze
+npx @stackctl/docker-storage-analyzer analyze
 ```
 
 Or install globally:
 
 ```bash
-npm install -g docker-storage-analyzer
+npm install -g @stackctl/docker-storage-analyzer
 dkanalyze analyze
 ```
 
-## CLI Usage
+## Sample output
+
+```
+HOST               docker-runner-04
+DOCKER ROOT        /var/lib/docker
+TOTAL USED         138.4 GB
+RECLAIMABLE        46.2 GB
+
+TYPE               USED       RECOMMENDATION
+images             52.1 GB    remove unused tags older than 21 days
+build-cache        41.7 GB    trim branches inactive for 10 days
+volumes            34.8 GB    review detached named volumes
+logs                9.8 GB    rotate containers over 2 GB
+```
+
+## CLI
 
 ```
 Usage: dkanalyze [command] [options]
 
 Commands:
-  analyze   Perform a full analysis of Docker disk usage
-  watch     Watch mode - re-analyze every N seconds
+  analyze    Run a full Docker disk usage report
+  watch      Re-analyze every N seconds
 
 Options:
-  -H, --host <socket>   Docker socket path (default: /var/run/docker.sock)
-  -j, --json            JSON output
-  --history             Show historical data
-  --ai                  Enable AI-powered recommendations
-  -i, --interval <sec>  Watch interval in seconds (default: 60)
-  -V, --version         Show version
-  -h, --help            Show help
+  -H, --host <socket>     Docker socket path (default /var/run/docker.sock)
+  -j, --json              Machine-readable output
+  -i, --interval <sec>    Watch interval (default 60s)
+  -V, --version           Print version
+  -h, --help              Show help
 ```
 
 ### Examples
 
 ```bash
-# Standard analysis
+# Standard report
 dkanalyze analyze
 
-# JSON output for scripting
+# JSON output for scripts and CI
 dkanalyze analyze --json
 
 # Watch every 30 seconds
 dkanalyze watch --interval 30
 
-# Custom Docker socket (e.g., Colima, Podman)
-dkanalyze analyze --host ~/.colima/docker.sock
+# Custom Docker socket (Colima, Podman, remote)
+dkanalyze analyze -H ~/.colima/docker.sock
 ```
 
-## Web Dashboard
+## Web dashboard
 
 ```bash
-dkanalyze web
-# Open http://localhost:3000
+npm run web
+# Starts at http://localhost:3000
 ```
 
-## Features
+Connects to `/var/run/docker.sock` by default. The dashboard lists images, volumes, containers, and recommendations with one-click prune (prototype — prune actions return 501 intentionally; use the suggested Docker commands manually).
 
-- **Per-Project Breakdown** — see which images, volumes, and containers consume the most space
-- **Historical Tracking** — track usage over time (requires persistent storage)
-- **Cleanup Recommendations** — actionable suggestions to reclaim space
-- **Log Analysis** — detect containers with oversized logs
-- **Build Cache** — measure BuildKit and builder cache usage
-- **Docker Extension** — available as a Docker Desktop extension (paid)
+## What it reports
 
-## Pricing
+- **Images** — size, tags, age, attached containers
+- **Volumes** — approximate usage, mount paths, active containers
+- **Containers** — status, writable-layer size, log sizes
+- **Build cache** — BuildKit/builder layers and total usage
+- **Recommendations** — ordered by reclaimed space with safety notes
 
-| Tier | Price | Includes |
-|------|-------|----------|
-| CLI | Free | Full analysis, terminal reports, JSON, watch mode |
-| Docker Extension | $9/mo | GUI, historical trends, one-click prune |
-| Team | $49/mo | Team dashboards, Slack alerts, usage policies |
-| Enterprise | $199/mo | Self-hosted, SSO, audit logs, priority support |
+## Requirements
+
+- Node.js 18 or later
+- Read access to the Docker socket (`/var/run/docker.sock` or equivalent)
 
 ## Development
 
 ```bash
-git clone <repo>
+git clone https://github.com/your-org/docker-storage-analyzer
 cd docker-storage-analyzer
 npm install
-npm run dev          # Run CLI in dev mode
-npm run web          # Start web dashboard
-npm test             # Run tests
-npm run build        # Build for production
+npm run dev          # CLI in dev mode (tsx)
+npm run web          # Web dashboard (tsx)
+npm test             # Run test suite
+npm run build        # Compile TypeScript
 ```
 
 ## License

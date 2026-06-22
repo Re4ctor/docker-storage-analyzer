@@ -112,7 +112,7 @@ export class DockerAnalyzer {
       containers.reduce((s, c) => s + c.logSize + c.writableLayerSize, 0) +
       buildCacheInfo.totalSize;
 
-    const totalCapacity = totalUsed;
+    const totalCapacity = await this.getDockerRootCapacity();
 
     const recommendations = this.generateRecommendations(
       images,
@@ -176,7 +176,7 @@ export class DockerAnalyzer {
       const name = (c.Names ?? [])[0]?.replace(/^\//, '') ?? shortId;
 
       const logDir = path.join(CONTAINER_LOGS_DIR, c.Id ?? '');
-      const logFile = path.join(logDir, `${shortId}-json.log`);
+      const logFile = path.join(logDir, `${c.Id ?? shortId}-json.log`);
       const logSize = await getFileSize(logFile);
 
       const writableLayerSize = ((c as any).SizeRw ?? 0);
@@ -246,6 +246,15 @@ export class DockerAnalyzer {
         }
       }
       return totalSize;
+    } catch {
+      return 0;
+    }
+  }
+
+  private async getDockerRootCapacity(): Promise<number> {
+    try {
+      const stats = await fs.statfs(DOCKER_BASE);
+      return stats.blocks * stats.bsize;
     } catch {
       return 0;
     }
