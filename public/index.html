@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Storage Analyzer</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <span class="logo">Docker Storage Analyzer</span>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="/app.html" class="cta-btn">Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h1>See where your <span class="gradient-text">Docker disk space</span> went.</h1>
+      <p class="subtitle">Get actionable cleanup recommendations. Reclaim gigabytes in one command.</p>
+      <div class="hero-actions">
+        <a href="/app.html" class="btn btn-primary">Launch Dashboard</a>
+        <span class="btn btn-secondary" onclick="copyCmd()"><code>npx dkanalyze analyze</code></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <div class="container">
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="icon">📊</div>
+          <h3>Per-Project Breakdown</h3>
+          <p>See exactly which images, volumes, and containers consume the most space.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📈</div>
+          <h3>Historical Tracking</h3>
+          <p>Track disk usage over time to spot trends and catch runaway containers early.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🤖</div>
+          <h3>AI Cleanup Suggestions</h3>
+          <p>Let our engine recommend exactly what to prune, with one-click execution.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📝</div>
+          <h3>Log Analysis</h3>
+          <p>Detect containers with oversized logs and rotate them automatically.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">⚡</div>
+          <h3>CI Cache Analysis</h3>
+          <p>Measure and clean build cache from Docker BuildKit and builder layers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔌</div>
+          <h3>Docker Extension</h3>
+          <p>Available as a Docker Desktop extension with full GUI support.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="try-it">
+    <div class="container">
+      <h2>Try it now</h2>
+      <div class="code-block">
+        <code>npx dkanalyze analyze</code>
+        <button class="copy-btn" onclick="copyCmd()">Copy</button>
+      </div>
+      <p class="try-sub">No installation required — runs directly via npx. Supports JSON output, watch mode, and web dashboard.</p>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2>Simple pricing</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>CLI</h3>
+          <div class="price">Free</div>
+          <ul>
+            <li>Full disk analysis</li>
+            <li>Terminal reports</li>
+            <li>JSON output</li>
+            <li>Watch mode</li>
+          </ul>
+          <a href="/app.html" class="btn btn-outline">Get Started</a>
+        </div>
+        <div class="pricing-card featured">
+          <h3>Docker Extension</h3>
+          <div class="price">$9<span>/mo</span></div>
+          <ul>
+            <li>Everything in CLI</li>
+            <li>Docker Desktop GUI</li>
+            <li>Historical trends</li>
+            <li>One-click prune</li>
+            <li>Log rotation assistant</li>
+          </ul>
+          <a href="#" class="btn btn-primary">Subscribe</a>
+        </div>
+        <div class="pricing-card">
+          <h3>Team</h3>
+          <div class="price">$49<span>/mo</span></div>
+          <ul>
+            <li>Everything in Extension</li>
+            <li>Team dashboards</li>
+            <li>Shared history</li>
+            <li>Slack alerts</li>
+            <li>Usage policies</li>
+          </ul>
+          <a href="#" class="btn btn-outline">Contact Sales</a>
+        </div>
+        <div class="pricing-card">
+          <h3>Enterprise</h3>
+          <div class="price">$199<span>/mo</span></div>
+          <ul>
+            <li>Everything in Team</li>
+            <li>Self-hosted option</li>
+            <li>SSO / SAML</li>
+            <li>Audit logs</li>
+            <li>Priority support</li>
+            <li>Custom integrations</li>
+          </ul>
+          <a href="#" class="btn btn-outline">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Docker Storage Analyzer &mdash; Open source CLI. Premium extensions available.</p>
+    </div>
+  </footer>
+
+  <script>
+    function copyCmd() {
+      navigator.clipboard.writeText('npx dkanalyze analyze');
+    }
+  </script>
+</body>
+</html>

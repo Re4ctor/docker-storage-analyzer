@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Storage Analyzer — Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .dashboard { padding: 40px 0; }
+    .connect-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .connect-section label { font-weight: 600; font-size: 14px; }
+    .connect-section input {
+      flex: 1;
+      min-width: 250px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-family: 'SF Mono', monospace;
+      font-size: 13px;
+    }
+    .connect-section input:focus { outline: none; border-color: var(--accent); }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .stat-card .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 4px; }
+    .stat-card .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-card .stat-detail { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .chart-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .chart-section h3 { margin-bottom: 16px; }
+    .chart-container { display: flex; gap: 40px; align-items: center; }
+    .chart-legend { display: flex; flex-direction: column; gap: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .legend-color { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+    .data-section { margin-bottom: 32px; }
+    .data-section h3 { margin-bottom: 12px; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+    }
+    .data-table tr:hover td { background: rgba(88,166,255,0.05); }
+    .rec-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .rec-card label { flex: 1; cursor: pointer; }
+    .rec-card .rec-action { font-weight: 600; font-size: 14px; }
+    .rec-card .rec-desc { font-size: 13px; color: var(--text-secondary); }
+    .rec-card .rec-size { font-family: 'SF Mono', monospace; font-size: 13px; color: var(--orange); white-space: nowrap; }
+    .prune-btn {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .prune-btn:hover { opacity: 0.85; }
+    .prune-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-msg { color: var(--red); padding: 12px; background: rgba(248,81,73,0.1); border-radius: 8px; margin-bottom: 16px; }
+    svg text { fill: var(--text-primary); font-family: Inter, sans-serif; }
+    @media (max-width: 800px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="logo" style="text-decoration:none">Docker Storage Analyzer</a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="https://github.com" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard container">
+    <div class="connect-section">
+      <label for="socketInput">Docker Socket</label>
+      <input type="text" id="socketInput" value="/var/run/docker.sock" placeholder="/var/run/docker.sock" />
+      <button class="btn btn-primary" id="analyzeBtn">Analyze</button>
+    </div>
+
+    <div id="errorContainer"></div>
+
+    <div id="results" style="display:none">
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="chart-section">
+        <h3>Disk Usage by Category</h3>
+        <div class="chart-container">
+          <div id="pieChart"></div>
+          <div class="chart-legend" id="chartLegend"></div>
+        </div>
+      </div>
+
+      <div class="data-section" id="imagesSection">
+        <h3>Images</h3>
+        <table class="data-table" id="imagesTable">
+          <thead><tr><th>Repository:Tag</th><th>Size</th><th>Created</th><th>Containers</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="data-section" id="containersSection">
+        <h3>Containers</h3>
+        <table class="data-table" id="containersTable">
+          <thead><tr><th>Name</th><th>Image</th><th>Status</th><th>Log Size</th><th>Writable</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="data-section" id="volumesSection">
+        <h3>Volumes</h3>
+        <table class="data-table" id="volumesTable">
+          <thead><tr><th>Name</th><th>Size</th><th>Containers</th><th>Driver</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="recommendationsSection">
+        <h3>Recommendations</h3>
+        <div id="recList"></div>
+        <button class="prune-btn" id="pruneBtn" disabled>Prune Selected</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
