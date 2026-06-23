@@ -1,6 +1,7 @@
 import Dockerode from 'dockerode';
 import fs from 'fs/promises';
 import path from 'path';
+import { detectDockerSocket } from './socket-detector.js';
 
 export interface ImageInfo {
   id: string;
@@ -78,9 +79,9 @@ export class DockerAnalyzer {
   private docker: Dockerode;
   private socketPath: string;
 
-  constructor(socketPath = '/var/run/docker.sock') {
-    this.socketPath = socketPath;
-    this.docker = new Dockerode({ socketPath });
+  constructor(socketPath?: string) {
+    this.socketPath = socketPath || detectDockerSocket();
+    this.docker = new Dockerode({ socketPath: this.socketPath });
   }
 
   async analyze(): Promise<DiskUsageReport> {

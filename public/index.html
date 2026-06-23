@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Docker Storage Analyzer - Minimal CLI</title>
-  <meta name="description" content="A small CLI for finding Docker images, volumes, logs, and build cache consuming disk space.">
+  <title>Docker Storage Analyzer — dkanalyze</title>
+  <meta name="description" content="Analyze Docker disk usage on any host. Find images, volumes, logs, and build cache consuming space with cleanup commands.">
   <style>
     :root {
       --bg: #fbfbfa;
@@ -164,7 +164,7 @@
     .blue { color: var(--blue); font-weight: 700; }
     .risk {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
       gap: 12px;
     }
     .risk-card {
@@ -213,12 +213,12 @@
 <body>
   <nav class="nav">
     <div class="wrap">
-      <a class="brand" href="#top">dsa</a>
+      <a class="brand" href="#top">dkanalyze</a>
       <div class="links">
         <a href="#usage">Usage</a>
         <a href="#output">Output</a>
         <a href="#safety">Safety</a>
-        <a class="button" href="#">Install</a>
+        <a class="button" href="#install">Install</a>
       </div>
     </div>
   </nav>
@@ -226,12 +226,12 @@
   <main id="top">
     <section class="hero">
       <div class="wrap">
-        <h1>A small CLI for finding what Docker left on disk.</h1>
-        <p class="lead">Run one command on a Docker host and get a sorted report of images, volumes, logs, cache, and cleanup commands with safety notes.</p>
-        <pre class="install"><span class="prompt">$</span> brew install dsa
-<span class="prompt">$</span> dsa scan --path /var/lib/docker</pre>
+        <h1>Find what Docker left on disk.</h1>
+        <p class="lead">One command. Sorted report of images, volumes, containers, logs, build cache — plus cleanup commands with safety notes.</p>
+        <pre class="install" id="install"><span class="prompt">$</span> npx @stackctl/docker-storage-analyzer analyze
+<span class="prompt">$</span> npm install -g @stackctl/docker-storage-analyzer</pre>
         <div class="actions">
-          <a class="button" href="#">Install CLI</a>
+          <a class="button" href="#install">Get started</a>
           <a class="button light" href="#usage">Read usage</a>
         </div>
       </div>
@@ -240,14 +240,14 @@
     <section class="section" id="usage">
       <div class="wrap manual">
         <div>
-          <h2>Designed to be boring in scripts.</h2>
-          <p class="section-note">Stable commands, stable fields, no daemon required.</p>
+          <h2>Two commands. Zero daemons.</h2>
+          <p class="section-note">Stable output. Works over any Docker socket.</p>
         </div>
         <div class="steps">
-          <div class="step"><code>dsa scan</code><p>Print a host summary with totals by Docker object type and reclaimable space.</p></div>
-          <div class="step"><code>dsa plan</code><p>Generate ordered cleanup actions with risk labels and estimated savings.</p></div>
-          <div class="step"><code>dsa json</code><p>Emit machine-readable output for CI jobs, cron reports, and platform dashboards.</p></div>
-          <div class="step"><code>dsa apply</code><p>Run approved cleanup actions while protecting running containers and attached volumes.</p></div>
+          <div class="step"><code>dkanalyze analyze</code><p>Full disk report: images, volumes, containers, logs, and build cache with reclaimable space.</p></div>
+          <div class="step"><code>dkanalyze watch</code><p>Re-analyze every N seconds. Useful for watching cleanup progress live.</p></div>
+          <div class="step"><code>dkanalyze analyze --json</code><p>Machine-readable output for CI pipelines, cron jobs, and monitoring dashboards.</p></div>
+          <div class="step"><code>dkanalyze analyze --ai</code><p>AI-powered cleanup suggestions (experimental — set OPENAI_API_KEY).</p></div>
         </div>
       </div>
     </section>
@@ -255,20 +255,50 @@
     <section class="section" id="output">
       <div class="wrap manual">
         <div>
-          <h2>Readable output, stable fields.</h2>
-          <p class="section-note">The default report is plain text. JSON is available for automation.</p>
+          <h2>Rich tables, clear recommendations.</h2>
+          <p class="section-note">Default output is a colorized terminal report. JSON when you need it.</p>
         </div>
         <div class="output">
-          <pre>HOST             docker-runner-04
-DOCKER ROOT      /var/lib/docker
-TOTAL USED       138.4 GB
-RECLAIMABLE      <span class="green">46.2 GB</span>
+          <pre>╔════════════════════════════════════════════════╗
+║        Docker Storage Analyzer Report        ║
+╚════════════════════════════════════════════════╝
 
-TYPE             USED       SAFE ACTION
-images           52.1 GB    remove unused tags older than 21d
-build-cache      41.7 GB    trim branches inactive for 10d
-volumes          34.8 GB    review detached named volumes
-logs             9.8 GB     rotate containers over 2 GB</pre>
+📊 Summary
+──────────────────────────────────────────────────
+  Total Used:     138.4 GB
+  Images                    52.1 GB (37.6%)
+  Volumes                   34.8 GB (25.1%)
+  Containers (logs+layer)   17.3 GB (12.5%)
+  Build Cache               34.2 GB (24.7%)
+──────────────────────────────────────────────────
+
+🖼 Images
+┌──────────────────────┬──────────┬───────────────┬────────────┐
+│ Repository:Tag       │ Size     │ Created       │ Containers │
+├──────────────────────┼──────────┼───────────────┼────────────┤
+│ postgres:15          │ 425.3 MB │ Jun 15, 2026  │ 1          │
+│ node:20-alpine       │ 175.8 MB │ Jun 10, 2026  │ 0          │
+│ &lt;none&gt;:&lt;none&gt;       │ 92.4 MB  │ May 3, 2026   │ 0          │
+└──────────────────────┴──────────┴───────────────┴────────────┘
+
+🧹 Cleanup Recommendations
+  Estimated reclaimable space: <span class="green">46.2 GB</span>
+
+  🗑 Remove 12 dangling (untagged) images
+     Estimated: 8.3 GB
+     <span class="blue">Command: docker image prune</span>
+
+  ⛔ Remove 3 stopped containers
+     Estimated: 2.1 GB
+     <span class="blue">Command: docker container prune</span>
+
+  💿 Remove 5 unused volumes
+     Estimated: 21.7 GB
+     <span class="blue">Command: docker volume prune</span>
+
+  🔧 Clear 1 build cache entries
+     Estimated: 14.1 GB
+     <span class="blue">Command: docker builder prune</span></pre>
         </div>
       </div>
     </section>
@@ -276,13 +306,15 @@ logs             9.8 GB     rotate containers over 2 GB</pre>
     <section class="section" id="safety">
       <div class="wrap manual">
         <div>
-          <h2>Cleanup with guardrails.</h2>
-          <p class="section-note">The tool separates what is safe, risky, and manual-review only.</p>
+          <h2>No automatic cleanup.</h2>
+          <p class="section-note">The tool shows you Docker commands to run — you decide what to prune.</p>
         </div>
         <div class="risk">
-          <div class="risk-card"><b class="green">safe</b><p>Unused image tags, old build cache, and logs above your rotation threshold.</p></div>
-          <div class="risk-card"><b class="blue">review</b><p>Detached volumes, images with recent tags, and containers with unknown labels.</p></div>
-          <div class="risk-card"><b>manual</b><p>Database volumes, bind mounts, and anything attached to a running container.</p></div>
+          <div class="risk-card"><b class="green">images</b><p>Dangling (&lt;none&gt;:&lt;none&gt;) images with zero attached containers are safe to remove.</p></div>
+          <div class="risk-card"><b class="blue">containers</b><p>Stopped containers and their writable layers — review before pruning.</p></div>
+          <div class="risk-card"><b>volumes</b><p>Detached volumes with no active containers. Double-check mount paths first.</p></div>
+          <div class="risk-card"><b>build cache</b><p>Builder layers and BuildKit cache. Safe to clear, but next builds will be slower.</p></div>
+          <div class="risk-card"><b>logs</b><p>Containers with logs over 10 MB. Rotate or truncate — data already emitted to stdout/stderr.</p></div>
         </div>
       </div>
     </section>
@@ -290,8 +322,8 @@ logs             9.8 GB     rotate containers over 2 GB</pre>
 
   <footer>
     <div class="wrap">
-      <span>Docker Storage Analyzer</span>
-      <span>Minimal CLI for Docker disk usage.</span>
+      <span>@stackctl/docker-storage-analyzer</span>
+      <span>npm i -g @stackctl/docker-storage-analyzer</span>
     </div>
   </footer>
 </body>

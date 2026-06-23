@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { DockerAnalyzer } from '../analyzer/docker-analyzer.js';
+import { detectDockerSocket } from '../analyzer/socket-detector.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -22,7 +23,7 @@ app.get('/', (_req, res) => {
 
 app.post('/api/analyze', async (req, res) => {
   try {
-    const dockerSocket = (req.query.dockerSocket as string) || process.env.DOCKER_SOCKET || '/var/run/docker.sock';
+    const dockerSocket = (req.query.dockerSocket as string) || detectDockerSocket();
     const analyzer = new DockerAnalyzer(dockerSocket);
     const report = await analyzer.analyze();
     res.json({ success: true, data: report });

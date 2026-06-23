@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { DockerAnalyzer } from '../analyzer/docker-analyzer.js';
 import { formatReport, formatJsonReport } from './formatter.js';
+import { detectDockerSocket } from '../analyzer/socket-detector.js';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 
@@ -18,7 +19,7 @@ program
 program
   .command('analyze')
   .description('Perform a full analysis of Docker disk usage')
-  .option('-H, --host <socket>', 'Docker socket path', process.env.DOCKER_SOCKET || '/var/run/docker.sock')
+  .option('-H, --host <socket>', 'Docker socket path', detectDockerSocket())
   .option('-j, --json', 'Output as JSON', false)
   .option('-h, --history', 'Show historical trend data (requires SQLite)', false)
   .option('--ai', 'Enable AI-powered recommendations (experimental)', false)
@@ -51,7 +52,7 @@ program
 program
   .command('watch')
   .description('Watch mode - re-analyze every 60 seconds')
-  .option('-H, --host <socket>', 'Docker socket path', process.env.DOCKER_SOCKET || '/var/run/docker.sock')
+  .option('-H, --host <socket>', 'Docker socket path', detectDockerSocket())
   .option('-i, --interval <seconds>', 'Interval between analyses', '60')
   .action(async (options) => {
     const interval = parseInt(options.interval, 10) * 1000;
