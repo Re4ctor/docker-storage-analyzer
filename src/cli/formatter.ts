@@ -22,9 +22,12 @@ export function formatReport(report: DiskUsageReport): string {
   const lines: string[] = [];
 
   lines.push('');
-  lines.push(chalk.bold.cyan('╔════════════════════════════════════════════════╗'));
-  lines.push(chalk.bold.cyan('║        Docker Storage Analyzer Report        ║'));
-  lines.push(chalk.bold.cyan('╚════════════════════════════════════════════════╝'));
+  lines.push(chalk.bold.cyan('╭──────────────────────────────────────────────────────╮'));
+  lines.push(chalk.bold.cyan('│                                                      │'));
+  lines.push(chalk.bold.cyan('│     Docker Storage Analyzer                          │'));
+  lines.push(chalk.bold.cyan('│     Disk Usage Report                                │'));
+  lines.push(chalk.bold.cyan('│                                                      │'));
+  lines.push(chalk.bold.cyan('╰──────────────────────────────────────────────────────╯'));
   lines.push('');
 
   lines.push(formatSummary(report));
@@ -43,7 +46,7 @@ export function formatReport(report: DiskUsageReport): string {
     lines.push('');
     lines.push(chalk.bold.yellow('Warnings/Errors:'));
     for (const err of report.errors) {
-      lines.push(chalk.yellow(`  ⚠ ${err}`));
+      lines.push(chalk.yellow(`  * ${err}`));
     }
   }
 
@@ -57,7 +60,7 @@ export function formatReport(report: DiskUsageReport): string {
 
 function formatSummary(report: DiskUsageReport): string {
   const lines: string[] = [];
-  lines.push(chalk.bold('📊 Summary'));
+  lines.push(chalk.bold('Summary'));
   lines.push(chalk.dim('─'.repeat(50)));
 
   const imagesSize = report.images.reduce((s, i) => s + i.size, 0);
@@ -110,7 +113,7 @@ function formatImagesTable(images: ImageInfo[]): string {
     table.push([chalk.dim(`... and ${images.length - 30} more`), '', '', '']);
   }
 
-  return `${chalk.bold('🖼 Images')}\n${table.toString()}`;
+  return `${chalk.bold('Images')}\n${table.toString()}`;
 }
 
 function formatContainersTable(containers: ContainerInfo[]): string {
@@ -137,7 +140,7 @@ function formatContainersTable(containers: ContainerInfo[]): string {
     ]);
   }
 
-  return `${chalk.bold('📦 Containers')}\n${table.toString()}`;
+  return `${chalk.bold('Containers')}\n${table.toString()}`;
 }
 
 function formatVolumesTable(volumes: VolumeInfo[]): string {
@@ -158,7 +161,7 @@ function formatVolumesTable(volumes: VolumeInfo[]): string {
     ]);
   }
 
-  return `${chalk.bold('💾 Volumes')}\n${table.toString()}`;
+  return `${chalk.bold('Volumes')}\n${table.toString()}`;
 }
 
 function formatBuildCacheTable(entries: BuildCacheEntry[]): string {
@@ -178,30 +181,30 @@ function formatBuildCacheTable(entries: BuildCacheEntry[]): string {
     ]);
   }
 
-  return `${chalk.bold('🔧 Build Cache')}\n${table.toString()}`;
+  return `${chalk.bold('Build Cache')}\n${table.toString()}`;
 }
 
 function formatRecommendations(recommendations: CleanupRecommendation[]): string {
   if (recommendations.length === 0) {
-    return chalk.green('✅ No cleanup recommendations — everything looks clean!');
+    return chalk.green('No cleanup recommendations — everything looks clean.');
   }
 
   const lines: string[] = [];
-  lines.push(chalk.bold('🧹 Cleanup Recommendations'));
+  lines.push(chalk.bold('Cleanup Recommendations'));
 
   const totalReclaimable = recommendations.reduce((s, r) => s + r.estimatedSpace, 0);
   lines.push(chalk.dim(`  Estimated reclaimable space: ${chalk.bold(formatBytes(totalReclaimable))}`));
   lines.push('');
 
   for (const rec of recommendations) {
-    const icon =
-      rec.category === 'images' ? '🗑' :
-      rec.category === 'containers' ? '⛔' :
-      rec.category === 'volumes' ? '💿' :
-      rec.category === 'build-cache' ? '🔧' :
-      '📋';
+    const label =
+      rec.category === 'images' ? '[images]' :
+      rec.category === 'containers' ? '[containers]' :
+      rec.category === 'volumes' ? '[volumes]' :
+      rec.category === 'build-cache' ? '[build-cache]' :
+      '[logs]';
 
-    lines.push(`  ${icon} ${chalk.bold(rec.description)}`);
+    lines.push(`  ${chalk.dim(label)} ${chalk.bold(rec.description)}`);
     lines.push(`     ${chalk.dim('Estimated:')} ${chalk.yellow(formatBytes(rec.estimatedSpace))}`);
     if (rec.command) {
       lines.push(`     ${chalk.dim('Command:')} ${chalk.cyan(rec.command)}`);

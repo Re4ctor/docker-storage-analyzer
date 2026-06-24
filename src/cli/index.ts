@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { DockerAnalyzer } from '../analyzer/docker-analyzer.js';
 import { formatReport, formatJsonReport } from './formatter.js';
 import { detectDockerSocket } from '../analyzer/socket-detector.js';
+import { getAIRecommendations, type AIProvider } from '../analyzer/ai-recommender.js';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 
@@ -14,7 +15,7 @@ const program = new Command();
 program
   .name('dkanalyze')
   .description('Docker Storage Analyzer - Analyze Docker disk usage')
-  .version('1.0.0');
+  .version('1.0.2');
 
 program
   .command('analyze')
@@ -22,7 +23,8 @@ program
   .option('-H, --host <socket>', 'Docker socket path', detectDockerSocket())
   .option('-j, --json', 'Output as JSON', false)
   .option('-h, --history', 'Show historical trend data (requires SQLite)', false)
-  .option('--ai', 'Enable AI-powered recommendations (experimental)', false)
+  .option('--ai', 'Enable AI-powered recommendations (auto-detects provider)')
+  .option('--ai-provider <provider>', 'AI backend: openai, anthropic, ollama, or opencode')
   .action(async (options) => {
     try {
       const analyzer = new DockerAnalyzer(options.host);
@@ -38,10 +40,19 @@ program
         console.log(chalk.dim('\nHistorical tracking is not implemented in this local prototype yet.'));
       }
 
-      if (options.ai) {
-        console.log(chalk.dim('\nAI recommendations:'));
-        console.log(chalk.dim('  Enable AI mode by setting OPENAI_API_KEY in .env'));
-        console.log(chalk.dim('  or use the hosted version at https://docker-analyzer.example.com'));
+      if (options.ai || options.aiProvider) {
+        const provider = (options.aiProvider as AIProvider | undefined) ?? undefined;
+        console.log(chalk.dim('\nAsking AI...'));
+        try {
+          const result = await getAIRecommendations(report, provider);
+          console.log(chalk.bold.cyan(`\nAI Recommendations (${result.provider} / ${result.model}):`));
+          console.log(chalk.dim('─'.repeat(60)));
+          console.log(result.content);
+          console.log(chalk.dim('─'.repeat(60)));
+        } catch (aiError: any) {
+          console.log(chalk.yellow(`\nAI recommendation failed: ${aiError.message}`));
+          console.log(chalk.dim('  Falling back to standard recommendations above.'));
+        }
       }
     } catch (error: any) {
       console.error(chalk.red('Error:'), error.message);

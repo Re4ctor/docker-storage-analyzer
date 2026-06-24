@@ -18,11 +18,14 @@ dkanalyze analyze
 ## Sample output
 
 ```
-╔════════════════════════════════════════════════╗
-║        Docker Storage Analyzer Report        ║
-╚════════════════════════════════════════════════╝
+╭──────────────────────────────────────────────────────╮
+│                                                      │
+│     Docker Storage Analyzer                          │
+│     Disk Usage Report                                │
+│                                                      │
+╰──────────────────────────────────────────────────────╯
 
-📊 Summary
+Summary
 ──────────────────────────────────────────────────
   Total Used:     138.4 GB
   Images                    52.1 GB (37.6%)
@@ -31,7 +34,7 @@ dkanalyze analyze
   Build Cache               34.2 GB (24.7%)
 ──────────────────────────────────────────────────
 
-🖼 Images
+Images
 ┌──────────────────────────────┬──────────────┬──────────────┬────────────┐
 │ Repository:Tag               │ Size         │ Created      │ Containers │
 ├──────────────────────────────┼──────────────┼──────────────┼────────────┤
@@ -40,24 +43,28 @@ dkanalyze analyze
 │ <none>:<none>                │ 92.4 MB      │ May 3, 2026  │ 0          │
 └──────────────────────────────┴──────────────┴──────────────┴────────────┘
 
-🧹 Cleanup Recommendations
+Cleanup Recommendations
   Estimated reclaimable space: 46.2 GB
 
-  🗑 Remove 12 dangling (untagged) images
+  [images] Remove 12 dangling (untagged) images
      Estimated: 8.3 GB
      Command: docker image prune
 
-  ⛔ Remove 3 stopped containers
+  [containers] Remove 3 stopped containers
      Estimated: 2.1 GB
      Command: docker container prune
 
-  💿 Remove 5 unused volumes
+  [volumes] Remove 5 unused volumes
      Estimated: 21.7 GB
      Command: docker volume prune
 
-  🔧 Clear 1 build cache entries
+  [build-cache] Clear 1 build cache entries
      Estimated: 14.1 GB
      Command: docker builder prune
+
+  [logs] Rotate logs for 2 containers exceeding 10 MB
+     Estimated: 5.2 GB
+     Command: docker logs --tail 1000 <container> > /dev/null 2>&1
 ```
 
 ## CLI
@@ -70,13 +77,14 @@ Commands:
   watch      Re-analyze every N seconds
 
 Options:
-  -H, --host <socket>     Docker socket path (auto-detected if omitted)
-  -j, --json              Machine-readable JSON output
-  --history               Show historical trend data (requires SQLite, prototype)
-  --ai                    AI-powered cleanup recommendations (experimental)
-  -i, --interval <sec>    Watch interval in seconds (default 60)
-  -V, --version           Print version
-  -h, --help              Show help
+  -H, --host <socket>       Docker socket path (auto-detected if omitted)
+  -j, --json                Machine-readable JSON output
+  --history                 Show historical trend data (prototype — not yet functional)
+  --ai                      AI-powered cleanup recommendations (experimental)
+  --ai-provider <provider>  AI backend: openai, anthropic, ollama, or opencode
+  -i, --interval <sec>      Watch interval in seconds (default 60)
+  -V, --version             Print version
+  -h, --help                Show help
 ```
 
 ### Examples
@@ -99,7 +107,25 @@ dkanalyze analyze --history
 
 # With AI-powered recommendations (experimental)
 dkanalyze analyze --ai
+
+# Use a specific AI provider
+dkanalyze analyze --ai --ai-provider anthropic
+dkanalyze analyze --ai --ai-provider ollama
+dkanalyze analyze --ai --ai-provider opencode
 ```
+
+## AI recommendations
+
+Enable with `--ai` (auto-detects provider from env vars) or specify `--ai-provider`. At least one provider must be configured:
+
+| Provider   | Env vars needed                                       |
+|------------|-------------------------------------------------------|
+| OpenAI     | `OPENAI_API_KEY` (required), `OPENAI_MODEL`           |
+| Anthropic  | `ANTHROPIC_API_KEY` (required), `ANTHROPIC_MODEL`     |
+| Ollama     | `OLLAMA_HOST` (default `http://localhost:11434`), `OLLAMA_MODEL` |
+| OpenCode   | None — just install `opencode` CLI                    |
+
+Set these in a `.env` file or export them in your shell.
 
 ## Web dashboard
 
@@ -110,13 +136,23 @@ npm run web
 
 The dashboard auto-detects the Docker socket (supports Docker Desktop, Colima, Podman, and custom paths via `?dockerSocket=` query param). It lists images, volumes, containers, and recommendations with one-click prune (prototype — prune actions return 501 intentionally; use the suggested Docker commands manually).
 
+### API endpoints
+
+| Method | Path           | Description                                   |
+|--------|---------------|-----------------------------------------------|
+| POST   | `/api/analyze` | Full disk usage report (JSON). Supports `?dockerSocket=` query param |
+| GET    | `/api/history` | Historical data (prototype — returns empty)    |
+| POST   | `/api/prune`   | Prune resources (prototype — returns 501)      |
+
 ## What it reports
 
 - **Images** — size, tags, age, attached containers
 - **Volumes** — approximate usage, mount paths, active containers
 - **Containers** — status, writable-layer size, log sizes
 - **Build cache** — BuildKit/builder layers and total usage
-- **Recommendations** — ordered by reclaimed space with safety notes
+- **Recommendations** — ordered by reclaimed space with safety notes:
+  - Dangling images, stopped containers, unused volumes, build cache
+  - Log rotation for containers with logs exceeding 10 MB
 
 ## Run with Docker
 
@@ -129,8 +165,10 @@ Or use a custom socket:
 
 ```bash
 docker run --rm -v ~/.colima/docker.sock:/var/run/docker.sock \
-  -e DOCKER_SOCKET=~/.colima/docker.sock dkanalyze analyze
+  -e DOCKER_SOCKET=/var/run/docker.sock dkanalyze analyze
 ```
+
+> **Note:** The `DOCKER_SOCKET` env var inside the container must point to the mount path (`/var/run/docker.sock`), not the host path.
 
 ## Requirements
 

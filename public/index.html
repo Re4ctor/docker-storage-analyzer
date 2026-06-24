@@ -247,7 +247,8 @@
           <div class="step"><code>dkanalyze analyze</code><p>Full disk report: images, volumes, containers, logs, and build cache with reclaimable space.</p></div>
           <div class="step"><code>dkanalyze watch</code><p>Re-analyze every N seconds. Useful for watching cleanup progress live.</p></div>
           <div class="step"><code>dkanalyze analyze --json</code><p>Machine-readable output for CI pipelines, cron jobs, and monitoring dashboards.</p></div>
-          <div class="step"><code>dkanalyze analyze --ai</code><p>AI-powered cleanup suggestions (experimental — set OPENAI_API_KEY).</p></div>
+          <div class="step"><code>dkanalyze analyze --ai</code><p>AI-powered cleanup suggestions. Supports OpenAI, Anthropic, Ollama, and OpenCode. Configure via env vars.</p></div>
+          <div class="step"><code>dkanalyze analyze --ai --ai-provider ollama</code><p>Pick a specific AI backend. Providers: openai, anthropic, ollama, opencode.</p></div>
         </div>
       </div>
     </section>
@@ -259,11 +260,14 @@
           <p class="section-note">Default output is a colorized terminal report. JSON when you need it.</p>
         </div>
         <div class="output">
-          <pre>╔════════════════════════════════════════════════╗
-║        Docker Storage Analyzer Report        ║
-╚════════════════════════════════════════════════╝
+          <pre>╭──────────────────────────────────────────────────────╮
+│                                                      │
+│     Docker Storage Analyzer                          │
+│     Disk Usage Report                                │
+│                                                      │
+╰──────────────────────────────────────────────────────╯
 
-📊 Summary
+Summary
 ──────────────────────────────────────────────────
   Total Used:     138.4 GB
   Images                    52.1 GB (37.6%)
@@ -272,7 +276,7 @@
   Build Cache               34.2 GB (24.7%)
 ──────────────────────────────────────────────────
 
-🖼 Images
+Images
 ┌──────────────────────┬──────────┬───────────────┬────────────┐
 │ Repository:Tag       │ Size     │ Created       │ Containers │
 ├──────────────────────┼──────────┼───────────────┼────────────┤
@@ -281,22 +285,22 @@
 │ &lt;none&gt;:&lt;none&gt;       │ 92.4 MB  │ May 3, 2026   │ 0          │
 └──────────────────────┴──────────┴───────────────┴────────────┘
 
-🧹 Cleanup Recommendations
+Cleanup Recommendations
   Estimated reclaimable space: <span class="green">46.2 GB</span>
 
-  🗑 Remove 12 dangling (untagged) images
+  [images] Remove 12 dangling (untagged) images
      Estimated: 8.3 GB
      <span class="blue">Command: docker image prune</span>
 
-  ⛔ Remove 3 stopped containers
+  [containers] Remove 3 stopped containers
      Estimated: 2.1 GB
      <span class="blue">Command: docker container prune</span>
 
-  💿 Remove 5 unused volumes
+  [volumes] Remove 5 unused volumes
      Estimated: 21.7 GB
      <span class="blue">Command: docker volume prune</span>
 
-  🔧 Clear 1 build cache entries
+  [build-cache] Clear 1 build cache entries
      Estimated: 14.1 GB
      <span class="blue">Command: docker builder prune</span></pre>
         </div>
