@@ -14,6 +14,30 @@
     "README.md",
     "Dockerfile"
   ],
+  "license": "MIT",
+  "keywords": [
+    "docker",
+    "docker-cli",
+    "docker-disk",
+    "docker-storage",
+    "docker-cleanup",
+    "docker-prune",
+    "docker-volumes",
+    "docker-images",
+    "buildkit",
+    "container",
+    "devops",
+    "ci",
+    "disk-usage"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stackctl/docker-storage-analyzer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stackctl/docker-storage-analyzer/issues"
+  },
+  "homepage": "https://github.com/stackctl/docker-storage-analyzer#readme",
   "publishConfig": {
     "access": "public"
   },
